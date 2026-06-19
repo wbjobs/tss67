@@ -363,6 +363,8 @@
     let isPlaying = false;
     let playInterval = null;
     let provinceCentroids = {};
+    let updateFactorTimeout = null;
+    let isDragging = false;
     
     const legendGradient = document.getElementById('legendGradient');
     legendGradient.style.background = 'linear-gradient(to right, #440154, #482878, #3e4989, #31688e, #26828e, #1f9e89, #35b779, #6ece58, #b5de2b, #fde725)';
@@ -401,12 +403,17 @@
         .attr('fill', '#440154')
         .on('mouseover', function(event, d) {
           const info = expansionData[d.properties.name] || { expansion: 1, density: d.properties.density };
+          let expansion = Number(info.expansion);
+          if (!isFinite(expansion) || isNaN(expansion)) {
+            expansion = 1;
+          }
+          const density = Number(info.density) || 0;
           tooltip
             .style('opacity', 1)
             .html(`
               <h4>${d.properties.name}</h4>
-              <p>人口密度: <strong>${info.density} 人/km²</strong></p>
-              <p>扩张系数: <strong>${info.expansion.toFixed(3)}</strong></p>
+              <p>人口密度: <strong>${density} 人/km²</strong></p>
+              <p>扩张系数: <strong>${expansion.toFixed(3)}</strong></p>
             `);
         })
         .on('mousemove', function(event) {
@@ -421,26 +428,41 @@
       paths.exit().remove();
     }
     
-    function updateMap() {
+    function updateMap(animate = true) {
       g.selectAll('.province')
         .each(function(d) {
           const info = expansionData[d.properties.name];
           if (!info) return;
           
           const element = d3.select(this);
-          const expansion = info.expansion;
+          let expansion = Number(info.expansion);
           const centroid = provinceCentroids[d.properties.name];
           
-          if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
+          if (!isFinite(expansion) || isNaN(expansion)) {
+            expansion = 1;
+          }
+          
+          expansion = Math.max(0.1, Math.min(3, expansion));
+          
+          if (!centroid || !isFinite(centroid[0]) || !isFinite(centroid[1])) return;
           
           const tx = centroid[0] * (1 - expansion);
           const ty = centroid[1] * (1 - expansion);
           
-          element
-            .attr('fill', colorScale(expansion))
-            .transition()
-            .duration(300)
-            .attr('transform', `translate(${tx}, ${ty}) scale(${expansion})`);
+          element.interrupt();
+          
+          if (animate) {
+            element
+              .attr('fill', colorScale(expansion))
+              .transition()
+              .duration(150)
+              .ease(d3.easeLinear)
+              .attr('transform', `translate(${tx}, ${ty}) scale(${expansion})`);
+          } else {
+            element
+              .attr('fill', colorScale(expansion))
+              .attr('transform', `translate(${tx}, ${ty}) scale(${expansion})`);
+          }
         });
     }
     
@@ -451,35 +473,74 @@
       const sortedProvinces = geojsonData.features
         .map(f => ({
           name: f.properties.name,
-          density: f.properties.density
+          density: Number(f.properties.density) || 0
         }))
         .sort((a, b) => b.density - a.density);
       
       sortedProvinces.forEach(province => {
         const info = expansionData[province.name] || { expansion: 1 };
+        let expansion = Number(info.expansion);
+        if (!isFinite(expansion) || isNaN(expansion)) {
+          expansion = 1;
+        }
+        
         const item = document.createElement('div');
         item.className = 'province-item';
         item.innerHTML = `
           <div class="province-name">
-            <div class="province-color" style="background: ${colorScale(info.expansion)}"></div>
+            <div class="province-color" style="background: ${colorScale(expansion)}"></div>
             <span>${province.name}</span>
           </div>
-          <div class="province-expansion">${info.expansion.toFixed(2)}x</div>
+          <div class="province-expansion">${expansion.toFixed(2)}x</div>
         `;
         list.appendChild(item);
       });
     }
     
-    async function updateFactor(value) {
+    async function updateFactor(value, animate = true) {
       document.getElementById('factorValue').textContent = Math.round(value);
-      await fetchExpansion(value);
-      updateMap();
-      updateProvinceList();
+      try {
+        const data = await fetchExpansion(value);
+        if (data && data.expansions) {
+          updateMap(animate);
+          updateProvinceList();
+        }
+      } catch (err) {
+        console.error('Failed to fetch expansion data:', err);
+      }
+    }
+    
+    function debouncedUpdateFactor(value) {
+      if (updateFactorTimeout) {
+        clearTimeout(updateFactorTimeout);
+      }
+      updateFactorTimeout = setTimeout(() => {
+        updateFactor(value, true);
+      }, 50);
     }
     
     const slider = document.getElementById('factorSlider');
     slider.addEventListener('input', function() {
-      updateFactor(this.value);
+      document.getElementById('factorValue').textContent = Math.round(this.value);
+      debouncedUpdateFactor(this.value);
+    });
+    
+    slider.addEventListener('mousedown', function() {
+      isDragging = true;
+    });
+    
+    slider.addEventListener('mouseup', function() {
+      isDragging = false;
+      updateFactor(this.value, true);
+    });
+    
+    slider.addEventListener('touchstart', function() {
+      isDragging = true;
+    });
+    
+    slider.addEventListener('touchend', function() {
+      isDragging = false;
+      updateFactor(this.value, true);
     });
     
     document.getElementById('resetBtn').addEventListener('click', function() {

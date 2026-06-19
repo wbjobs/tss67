@@ -28,15 +28,27 @@ app.get('/api/expansion', (req, res) => {
   const clampedFactor = Math.max(0, Math.min(100, factor));
   
   const expansions = {};
-  const maxDensity = Math.max(...geojsonData.features.map(f => f.properties.density));
-  const minDensity = Math.min(...geojsonData.features.map(f => f.properties.density));
+  const densities = geojsonData.features.map(f => Number(f.properties.density) || 0);
+  const maxDensity = Math.max(...densities);
+  const minDensity = Math.min(...densities);
+  const densityRange = maxDensity - minDensity;
   
   geojsonData.features.forEach(feature => {
-    const density = feature.properties.density;
-    const normalizedDensity = (density - minDensity) / (maxDensity - minDensity);
+    const density = Number(feature.properties.density) || 0;
+    let normalizedDensity = 0;
+    
+    if (densityRange > 0 && isFinite(densityRange)) {
+      normalizedDensity = (density - minDensity) / densityRange;
+    }
+    
+    normalizedDensity = Math.max(0, Math.min(1, normalizedDensity));
+    
     const expansionCoefficient = 1 + (normalizedDensity * clampedFactor / 100) * 0.8;
+    
+    const safeExpansion = isFinite(expansionCoefficient) ? expansionCoefficient : 1;
+    
     expansions[feature.properties.name] = {
-      expansion: expansionCoefficient,
+      expansion: safeExpansion,
       density: density,
       normalizedDensity: normalizedDensity
     };
