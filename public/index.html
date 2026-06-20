@@ -286,6 +286,167 @@
     ::-webkit-scrollbar-thumb:hover {
       background: rgba(0, 212, 255, 0.5);
     }
+
+    .file-upload {
+      margin-bottom: 15px;
+    }
+
+    .file-upload label {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      text-align: center;
+      background: rgba(0, 212, 255, 0.1);
+      border: 2px dashed rgba(0, 212, 255, 0.3);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85em;
+      transition: all 0.3s;
+    }
+
+    .file-upload label:hover {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: rgba(0, 212, 255, 0.6);
+    }
+
+    .file-upload input[type="file"] {
+      display: none;
+    }
+
+    .formula-section {
+      margin-bottom: 15px;
+    }
+
+    .formula-label {
+      font-size: 0.85em;
+      color: #8892b0;
+      margin-bottom: 8px;
+    }
+
+    .formula-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #00ff88;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .formula-input:focus {
+      border-color: #00d4ff;
+    }
+
+    .formula-input.error {
+      border-color: #ff4757;
+      background: rgba(255, 71, 87, 0.1);
+    }
+
+    .formula-hint {
+      font-size: 0.75em;
+      color: #8892b0;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .formula-hint code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: #00d4ff;
+    }
+
+    .play-options {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .play-options label {
+      font-size: 0.8em;
+      color: #8892b0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .play-options input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #00d4ff;
+    }
+
+    .file-name {
+      font-size: 0.8em;
+      color: #00ff88;
+      margin-top: 8px;
+      text-align: center;
+      word-break: break-all;
+    }
+
+    .error-message {
+      background: rgba(255, 71, 87, 0.1);
+      border: 1px solid rgba(255, 71, 87, 0.3);
+      color: #ff6b7a;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .panel-header h3 {
+      margin-bottom: 0;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .speed-control label {
+      font-size: 0.8em;
+      color: #8892b0;
+    }
+
+    .speed-control input[type="range"] {
+      flex: 1;
+      height: 4px;
+    }
+
+    .speed-control input[type="range"]::-webkit-slider-thumb {
+      width: 14px;
+      height: 14px;
+    }
+
+    .speed-value {
+      font-size: 0.8em;
+      color: #00d4ff;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .sidebar {
+      width: 320px;
+    }
   </style>
 </head>
 <body>
@@ -299,6 +460,43 @@
       </div>
       
       <div class="sidebar">
+        <div class="panel">
+          <h3>📁 加载地图</h3>
+          <div class="file-upload">
+            <label for="geojsonFile">
+              📤 点击上传 GeoJSON 文件
+            </label>
+            <input type="file" id="geojsonFile" accept=".geojson,.json">
+          </div>
+          <div class="file-name" id="fileName">当前: 中国省份示例数据</div>
+          <div class="error-message" id="fileError"></div>
+          <button class="btn" id="loadDefaultBtn" style="width: 100%; margin-top: 10px;">
+            🔄 加载默认数据
+          </button>
+        </div>
+
+        <div class="panel">
+          <h3>🧮 公式编辑器</h3>
+          <div class="formula-section">
+            <div class="formula-label">扩张系数计算公式:</div>
+            <input type="text" id="formulaInput" class="formula-input" 
+                   value="1 + (normalized * factor / 100) * 0.8">
+            <div class="formula-hint">
+              可用变量: <code>factor</code> (0-100), <code>value</code> (原始属性值), <code>normalized</code> (归一化后的值)<br>
+              示例: <code>1 + value * factor / 1000</code>
+            </div>
+            <div class="formula-section">
+              <div class="formula-label" style="margin-top: 12px;">属性字段名:</div>
+              <input type="text" id="propertyInput" class="formula-input" 
+                     value="density" placeholder="如: density, population, area">
+              <div class="formula-hint">
+                GeoJSON properties 中用于计算的字段名
+              </div>
+            </div>
+            <div class="error-message" id="formulaError"></div>
+          </div>
+        </div>
+
         <div class="panel">
           <h3>🎚️ 影响因子</h3>
           <div class="factor-display">
@@ -316,6 +514,16 @@
           <div class="control-buttons">
             <button class="btn" id="resetBtn">重置</button>
             <button class="btn btn-primary" id="playBtn">▶ 播放</button>
+          </div>
+          <div class="play-options">
+            <label>
+              <input type="checkbox" id="loopPlay" checked> 循环播放
+            </label>
+          </div>
+          <div class="speed-control">
+            <label>速度:</label>
+            <input type="range" id="speedSlider" min="10" max="200" value="50">
+            <span class="speed-value" id="speedValue">50ms</span>
           </div>
         </div>
         
@@ -365,36 +573,239 @@
     let provinceCentroids = {};
     let updateFactorTimeout = null;
     let isDragging = false;
+    let propertyName = 'density';
+    let formula = '1 + (normalized * factor / 100) * 0.8';
+    let playSpeed = 50;
+    let loopPlay = true;
+    let dataStats = { min: 0, max: 0, range: 0 };
     
     const legendGradient = document.getElementById('legendGradient');
     legendGradient.style.background = 'linear-gradient(to right, #440154, #482878, #3e4989, #31688e, #26828e, #1f9e89, #35b779, #6ece58, #b5de2b, #fde725)';
     
-    async function loadGeoJSON() {
-      const response = await fetch('/api/geojson');
-      geojsonData = await response.json();
+    function safeEvalFormula(formulaStr, factor, value, normalized) {
+      try {
+        const allowedChars = /^[0-9+\-*/().\sfactorvaluenormalized,]+$/;
+        if (!allowedChars.test(formulaStr)) {
+          throw new Error('公式包含非法字符，只允许数字、运算符和变量名');
+        }
+        
+        const func = new Function('factor', 'value', 'normalized', `
+          'use strict';
+          return (${formulaStr});
+        `);
+        
+        const result = func(factor, value, normalized);
+        
+        if (typeof result !== 'number' || !isFinite(result) || isNaN(result)) {
+          throw new Error('计算结果无效');
+        }
+        
+        return result;
+      } catch (err) {
+        console.warn('Formula calculation error:', err.message, 'formula:', formulaStr);
+        return 1;
+      }
+    }
+    
+    function calculateDataStats() {
+      if (!geojsonData || !geojsonData.features) return;
+      
+      const values = geojsonData.features
+        .map(f => Number(f.properties[propertyName]) || 0)
+        .filter(v => isFinite(v));
+      
+      if (values.length === 0) {
+        dataStats = { min: 0, max: 0, range: 0 };
+        return;
+      }
+      
+      dataStats.min = Math.min(...values);
+      dataStats.max = Math.max(...values);
+      dataStats.range = dataStats.max - dataStats.min;
+    }
+    
+    function calculateExpansionLocal(factor) {
+      const clampedFactor = Math.max(0, Math.min(100, Number(factor) || 0));
+      const expansions = {};
+      
+      calculateDataStats();
+      
+      geojsonData.features.forEach(feature => {
+        const rawValue = Number(feature.properties[propertyName]) || 0;
+        let normalized = 0;
+        
+        if (dataStats.range > 0 && isFinite(dataStats.range)) {
+          normalized = (rawValue - dataStats.min) / dataStats.range;
+        }
+        
+        normalized = Math.max(0, Math.min(1, normalized));
+        
+        let expansion = safeEvalFormula(formula, clampedFactor, rawValue, normalized);
+        
+        if (!isFinite(expansion) || isNaN(expansion)) {
+          expansion = 1;
+        }
+        
+        expansion = Math.max(0.1, Math.min(3, expansion));
+        
+        const name = feature.properties.name || feature.properties.id || 'Unknown';
+        
+        expansions[name] = {
+          expansion: expansion,
+          value: rawValue,
+          normalized: normalized
+        };
+      });
+      
+      return {
+        factor: clampedFactor,
+        expansions: expansions
+      };
+    }
+    
+    function showError(elementId, message) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.textContent = message;
+        el.classList.add('show');
+      }
+    }
+    
+    function hideError(elementId) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.textContent = '';
+        el.classList.remove('show');
+      }
+    }
+    
+    function validateFormula() {
+      const formulaInput = document.getElementById('formulaInput');
+      formula = formulaInput.value.trim();
+      
+      try {
+        const testResult = safeEvalFormula(formula, 50, 100, 0.5);
+        if (!isFinite(testResult) || isNaN(testResult)) {
+          throw new Error('计算结果无效');
+        }
+        formulaInput.classList.remove('error');
+        hideError('formulaError');
+        return true;
+      } catch (err) {
+        formulaInput.classList.add('error');
+        showError('formulaError', '公式错误: ' + err.message);
+        return false;
+      }
+    }
+    
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          
+          if (!data.type || data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
+            throw new Error('无效的 GeoJSON 格式，请确保是 FeatureCollection');
+          }
+          
+          if (data.features.length === 0) {
+            throw new Error('GeoJSON 不包含任何要素');
+          }
+          
+          const firstProps = data.features[0].properties || {};
+          const availableProps = Object.keys(firstProps);
+          
+          if (availableProps.length === 0) {
+            throw new Error('GeoJSON 要素不包含任何属性字段');
+          }
+          
+          geojsonData = data;
+          document.getElementById('fileName').textContent = '当前: ' + file.name;
+          hideError('fileError');
+          
+          if (availableProps.includes(propertyName)) {
+          } else {
+            propertyName = availableProps[0];
+            document.getElementById('propertyInput').value = propertyName;
+          }
+          
+          initializeGeoJSON();
+          
+        } catch (err) {
+          console.error('File load error:', err);
+          showError('fileError', '文件加载失败: ' + err.message);
+        }
+      };
+      
+      reader.onerror = function() {
+        showError('fileError', '文件读取失败');
+      };
+      
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+    
+    function initializeGeoJSON() {
+      if (!geojsonData) return;
+      
+      g.selectAll('.province').remove();
+      provinceCentroids = {};
+      expansionData = {};
       
       projection
         .reflectY(true)
         .fitSize([width - 40, height - 40], geojsonData);
       
       geojsonData.features.forEach(feature => {
-        provinceCentroids[feature.properties.name] = geoPath.centroid(feature);
+        const name = feature.properties.name || feature.properties.id || 'Unknown';
+        try {
+          provinceCentroids[name] = geoPath.centroid(feature);
+        } catch (err) {
+          provinceCentroids[name] = [width / 2, height / 2];
+        }
       });
       
+      calculateDataStats();
       renderMap();
-      updateProvinceList();
+      
+      const currentFactor = document.getElementById('factorSlider').value;
+      calculateAndUpdate(currentFactor, false);
     }
     
-    async function fetchExpansion(factor) {
-      const response = await fetch(`/api/expansion?factor=${factor}`);
-      const data = await response.json();
-      expansionData = data.expansions;
-      return data;
+    async function loadGeoJSON() {
+      try {
+        const response = await fetch('/api/geojson');
+        geojsonData = await response.json();
+        document.getElementById('fileName').textContent = '当前: 中国省份示例数据';
+        initializeGeoJSON();
+      } catch (err) {
+        console.error('Failed to load default GeoJSON:', err);
+        showError('fileError', '加载默认数据失败');
+      }
+    }
+    
+    function calculateAndUpdate(value, animate = true) {
+      document.getElementById('factorValue').textContent = Math.round(value);
+      
+      if (!validateFormula()) {
+        return;
+      }
+      
+      const data = calculateExpansionLocal(value);
+      if (data && data.expansions) {
+        expansionData = data.expansions;
+        updateMap(animate);
+        updateProvinceList();
+      }
     }
     
     function renderMap() {
       const paths = g.selectAll('.province')
-        .data(geojsonData.features, d => d.properties.name);
+        .data(geojsonData.features, d => d.properties.name || d.properties.id);
       
       paths.enter()
         .append('path')
@@ -402,17 +813,18 @@
         .attr('d', geoPath)
         .attr('fill', '#440154')
         .on('mouseover', function(event, d) {
-          const info = expansionData[d.properties.name] || { expansion: 1, density: d.properties.density };
+          const name = d.properties.name || d.properties.id || 'Unknown';
+          const info = expansionData[name] || { expansion: 1, value: d.properties[propertyName] };
           let expansion = Number(info.expansion);
           if (!isFinite(expansion) || isNaN(expansion)) {
             expansion = 1;
           }
-          const density = Number(info.density) || 0;
+          const value = Number(info.value) || 0;
           tooltip
             .style('opacity', 1)
             .html(`
-              <h4>${d.properties.name}</h4>
-              <p>人口密度: <strong>${density} 人/km²</strong></p>
+              <h4>${name}</h4>
+              <p>${propertyName}: <strong>${value}</strong></p>
               <p>扩张系数: <strong>${expansion.toFixed(3)}</strong></p>
             `);
         })
@@ -472,10 +884,10 @@
       
       const sortedProvinces = geojsonData.features
         .map(f => ({
-          name: f.properties.name,
-          density: Number(f.properties.density) || 0
+          name: f.properties.name || f.properties.id || 'Unknown',
+          value: Number(f.properties[propertyName]) || 0
         }))
-        .sort((a, b) => b.density - a.density);
+        .sort((a, b) => b.value - a.value);
       
       sortedProvinces.forEach(province => {
         const info = expansionData[province.name] || { expansion: 1 };
@@ -497,17 +909,8 @@
       });
     }
     
-    async function updateFactor(value, animate = true) {
-      document.getElementById('factorValue').textContent = Math.round(value);
-      try {
-        const data = await fetchExpansion(value);
-        if (data && data.expansions) {
-          updateMap(animate);
-          updateProvinceList();
-        }
-      } catch (err) {
-        console.error('Failed to fetch expansion data:', err);
-      }
+    function updateFactor(value, animate = true) {
+      calculateAndUpdate(value, animate);
     }
     
     function debouncedUpdateFactor(value) {
@@ -568,12 +971,19 @@
       playInterval = setInterval(() => {
         let current = parseInt(slider.value);
         if (current >= 100) {
-          stopPlay();
-          return;
+          if (loopPlay) {
+            slider.value = 0;
+            updateFactor(0, false);
+            return;
+          } else {
+            stopPlay();
+            return;
+          }
         }
         slider.value = current + 1;
-        updateFactor(current + 1);
-      }, 50);
+        document.getElementById('factorValue').textContent = current + 1;
+        debouncedUpdateFactor(current + 1);
+      }, playSpeed);
     }
     
     function stopPlay() {
@@ -584,6 +994,52 @@
         playInterval = null;
       }
     }
+    
+    document.getElementById('geojsonFile').addEventListener('change', handleFileUpload);
+    
+    document.getElementById('loadDefaultBtn').addEventListener('click', function() {
+      loadGeoJSON();
+    });
+    
+    document.getElementById('formulaInput').addEventListener('input', function() {
+      if (validateFormula()) {
+        const current = slider.value;
+        updateFactor(current, false);
+      }
+    });
+    
+    document.getElementById('propertyInput').addEventListener('input', function() {
+      const newProp = this.value.trim();
+      if (newProp && geojsonData && geojsonData.features.length > 0) {
+        const firstFeature = geojsonData.features[0];
+        if (firstFeature.properties && firstFeature.properties.hasOwnProperty(newProp)) {
+          propertyName = newProp;
+          hideError('formulaError');
+          this.classList.remove('error');
+          calculateDataStats();
+          const current = slider.value;
+          updateFactor(current, false);
+        } else {
+          this.classList.add('error');
+          const available = Object.keys(firstFeature.properties || {}).join(', ');
+          showError('formulaError', `属性字段不存在。可用字段: ${available}`);
+        }
+      }
+    });
+    
+    document.getElementById('loopPlay').addEventListener('change', function() {
+      loopPlay = this.checked;
+    });
+    
+    document.getElementById('speedSlider').addEventListener('input', function() {
+      playSpeed = parseInt(this.value);
+      document.getElementById('speedValue').textContent = playSpeed + 'ms';
+      
+      if (isPlaying) {
+        clearInterval(playInterval);
+        startPlay();
+      }
+    });
     
     loadGeoJSON();
   </script>
